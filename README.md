@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tiny Records Feature
 
-## Getting Started
+A minimal full-stack demo that implements a **secure records system** with login, session cookies, and a Next.js frontend.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Deliverables
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Backend (Next.js API Routes + TypeScript + In-Memory Storage)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Authentication**
+  - `POST /api/login`
+    - Accepts `{ email: "demo@sma.local", password: "demo123" }`
+    - On success, sets an `sid` **httpOnly cookie**
+    - Used for all subsequent requests
+- **Records API**
+  - `GET /api/records`  
+    - Auth required (valid session cookie)  
+    - Returns only the caller’s records
+  - `POST /api/records`  
+    - Auth required (valid session cookie)  
+    - Accepts body `{ title, priority }`  
+    - Validates:
+      - `title` ≥ 3 characters
+      - `priority` must be `low | med | high`
+    - Inserts a new record
+- **Storage**
+  - In-memory array with fields:
+    - `id`
+    - `user_email`
+    - `title`
+    - `priority`
+    - `created_at`
+- **Constraints**
+  - User-scoped records (based on email in session)
+  - Invalid requests return JSON errors instead of crashing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+### Frontend (Next.js + TypeScript + MUI + React Hook Form + TanStack Query)
 
-To learn more about Next.js, take a look at the following resources:
+- **Login Page**
+  - Form fields: `email`, `password`
+  - Submits to `/api/login`
+  - On success → redirects to `/records`
+- **Records Page**
+  - **Record Form**
+    - Fields:
+      - `title` (minimum 3 characters, required)
+      - `priority` (low / med / high)
+    - Submit posts to `/api/records`
+    - Submit button disabled until valid
+  - **Records List**
+    - Uses TanStack Query to fetch from `/api/records`
+    - Displays user-scoped records with `title`, `priority`, `created_at`, and `user_email`
+- **UI Notes**
+  - Material UI components (`Paper`, `Stack`, `TextField`, `Button`, etc.)
+  - Light background even in dark mode
+  - Loading states with spinners
+  - Inline validation error messages
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Session Auth
 
-## Deploy on Vercel
+- Session handled via **httpOnly cookies** only (iron-session)
+- No JWTs or localStorage
+- Keeps frontend minimal and secure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Summary
+
+This project shows how to build a tiny but secure full-stack feature with:
+
+- **Backend:** Next.js API routes, TypeScript, in-memory storage
+- **Frontend:** Next.js + TypeScript, MUI, React Hook Form, TanStack Query
+- **Auth:** Session cookie only
+- **Records:** User-scoped CRUD with validation and error handling
